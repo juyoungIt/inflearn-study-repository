@@ -13,7 +13,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.entity.Member;
 import study.querydsl.entity.QMember;
-import study.querydsl.entity.QTeam;
 import study.querydsl.entity.Team;
 
 import java.util.List;
@@ -283,5 +282,66 @@ public class QuerydslBasicTest {
         assertThat(results.size()).isEqualTo(1);
         assertThat(results.get(0).get(team.name)).isEqualTo("teamB");
         assertThat(results.get(0).get(member.age.avg())).isEqualTo(35);
+    }
+
+    @Test
+    @DisplayName("teamA에 소속된 모든 회원을 조회한다. - use inner join")
+    public void innerJoin() {
+        List<Member> members = queryFactory
+                .selectFrom(member)
+                .join(member.team, team)
+                .where(member.team.name.eq("teamA"))
+                .fetch();
+
+        assertThat(members)
+                .extracting("username")
+                .containsExactly("member1", "member2");
+    }
+
+    @Test
+    @DisplayName("teamA에 소속된 모든 회원을 조회한다. - use left join")
+    public void leftJoin() {
+        List<Member> members = queryFactory
+                .selectFrom(member)
+                .leftJoin(member.team, team)
+                .where(member.team.name.eq("teamA"))
+                .fetch();
+
+        assertThat(members)
+                .extracting("username")
+                .containsExactly("member1", "member2");
+    }
+
+    @Test
+    @DisplayName("teamA에 소속된 모든 회원을 조회한다. - use right join")
+    public void rightJoin() {
+        List<Member> members = queryFactory
+                .selectFrom(member)
+                .rightJoin(member.team, team)
+                .where(member.team.name.eq("teamA"))
+                .fetch();
+
+        assertThat(members)
+                .extracting("username")
+                .containsExactly("member1", "member2");
+    }
+
+    @Test
+    @DisplayName("세타 조인, 회원의 이름이 팀 이름과 같은 경우를 조회한다.")
+    public void thetaJoin() {
+        /* 해당 케이스를 위해 필요한 추가 데이터를 세팅 */
+        em.persist(new Member("teamA"));
+        em.persist(new Member("teamB"));
+        em.persist(new Member("teamC"));
+
+        List<Member> result = queryFactory
+                .select(member)
+                .from(member, team) // cartesian product
+                .where(member.username.eq(team.name))
+                .fetch();
+
+        assertThat(result)
+                .extracting("username")
+                .containsExactly("teamA", "teamB");
     }
 }
