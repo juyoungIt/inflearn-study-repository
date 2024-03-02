@@ -5,6 +5,8 @@ import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -398,4 +400,38 @@ public class QuerydslBasicTest {
         assertThat(result.get(6).get(team)).isNull();
     }
 
+    @PersistenceUnit
+    EntityManagerFactory emf;
+
+    @Test
+    @DisplayName("fetch join이 적용되지 않은 경우")
+    public void fetchJoinNo() {
+        /* fetch join과 관련된 결과를 잘 확인하기 위해 영속성 컨텍스트를 비움 */
+        em.flush();
+        em.clear();
+
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .join(member.team, team)
+                .where(QMember.member.username.eq("member1"))
+                .fetchOne();
+
+        assertThat(emf.getPersistenceUnitUtil().isLoaded(findMember.getTeam())).isFalse();
+    }
+
+    @Test
+    @DisplayName("fetch join을 적용한 경우")
+    public void fetchJoinUse() {
+        /* fetch join과 관련된 결과를 잘 확인하기 위해 영속성 컨텍스트를 비움 */
+        em.flush();
+        em.clear();
+
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .join(member.team, team).fetchJoin() // fetch join을 적용한 코드
+                .where(QMember.member.username.eq("member1"))
+                .fetchOne();
+
+        assertThat(emf.getPersistenceUnitUtil().isLoaded(findMember.getTeam())).isTrue();
+    }
 }
