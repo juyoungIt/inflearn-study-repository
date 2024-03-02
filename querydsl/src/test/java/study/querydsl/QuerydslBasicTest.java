@@ -195,4 +195,35 @@ public class QuerydslBasicTest {
         assertThat(members.get(2).getUsername()).isNull();
     }
 
+    @Test
+    @DisplayName("Paging을 통해 조회 건수를 제한한다.")
+    public void paging1() {
+        List<Member> members = queryFactory
+                .selectFrom(member)
+                .orderBy(member.username.desc())
+                .offset(1) // 0부터 시작, 이는 1개를 생략함을 의미함
+                .limit(2)  // 최대 2건을 조회한다
+                .fetch();
+
+        assertThat(members.size()).isEqualTo(2);
+        assertThat(members.get(0).getUsername()).isEqualTo("member3");
+        assertThat(members.get(1).getUsername()).isEqualTo("member2");
+    }
+
+    @Test
+    @DisplayName("전체 조회 수가 필요한 경우")
+    public void paging2() {
+        QueryResults<Member> results = queryFactory
+                .selectFrom(member)
+                .orderBy(member.username.desc())
+                .offset(1)
+                .limit(2)
+                .fetchResults();
+
+        assertThat(results.getTotal()).isEqualTo(4);
+        assertThat(results.getLimit()).isEqualTo(2);
+        assertThat(results.getOffset()).isEqualTo(1);
+        assertThat(results.getResults().size()).isEqualTo(2);
+    }
+
 }
