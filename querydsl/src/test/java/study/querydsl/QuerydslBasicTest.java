@@ -344,4 +344,58 @@ public class QuerydslBasicTest {
                 .extracting("username")
                 .containsExactly("teamA", "teamB");
     }
+
+    @Test
+    @DisplayName("회원과 팀을 조인하면서 팀 이름이 teamA인 팀만 조인, 회원은 모두 조회한다.")
+    public void joinOnFiltering() {
+        List<Tuple> result = queryFactory
+                .select(member, team)
+                .from(member)
+                .leftJoin(member.team, team)
+                .on(team.name.eq("teamA"))
+                .orderBy(member.username.asc())
+                .fetch();
+
+        assertThat(result.get(0).get(member).getUsername()).isEqualTo("member1");
+        assertThat(result.get(0).get(team).getName()).isEqualTo("teamA");
+        assertThat(result.get(1).get(member).getUsername()).isEqualTo("member2");
+        assertThat(result.get(1).get(team).getName()).isEqualTo("teamA");
+        assertThat(result.get(2).get(member).getUsername()).isEqualTo("member3");
+        assertThat(result.get(2).get(team)).isNull();
+        assertThat(result.get(3).get(member).getUsername()).isEqualTo("member4");
+        assertThat(result.get(3).get(team)).isNull();
+    }
+
+    @Test
+    @DisplayName("연관관계가 없는 두 엔티티를 외부조인, 회원의 이름이 팀 이름과 같은 경우를 외부조인")
+    public void joinOnNoRelation() {
+        /* 해당 케이스를 위해 필요한 추가 데이터를 세팅 */
+        em.persist(new Member("teamA"));
+        em.persist(new Member("teamB"));
+        em.persist(new Member("teamC"));
+
+        List<Tuple> result = queryFactory
+                .select(member, team)
+                .from(member)
+                .leftJoin(team)
+                .on(member.username.eq(team.name))
+                .orderBy(member.username.asc())
+                .fetch();
+
+        assertThat(result.get(0).get(member).getUsername()).isEqualTo("member1");
+        assertThat(result.get(0).get(team)).isNull();
+        assertThat(result.get(1).get(member).getUsername()).isEqualTo("member2");
+        assertThat(result.get(1).get(team)).isNull();
+        assertThat(result.get(2).get(member).getUsername()).isEqualTo("member3");
+        assertThat(result.get(2).get(team)).isNull();
+        assertThat(result.get(3).get(member).getUsername()).isEqualTo("member4");
+        assertThat(result.get(3).get(team)).isNull();
+        assertThat(result.get(4).get(member).getUsername()).isEqualTo("teamA");
+        assertThat(result.get(4).get(team).getName()).isEqualTo("teamA");
+        assertThat(result.get(5).get(member).getUsername()).isEqualTo("teamB");
+        assertThat(result.get(5).get(team).getName()).isEqualTo("teamB");
+        assertThat(result.get(6).get(member).getUsername()).isEqualTo("teamC");
+        assertThat(result.get(6).get(team)).isNull();
+    }
+
 }
