@@ -94,4 +94,32 @@ public class QuerydslBasicTest {
         assertThat(findMember.getUsername()).isEqualTo("member1");
     }
 
+    @Test
+    @DisplayName("검색조건을 추가하여 이름과 나이를 기준으로 member를 검색하는 경우")
+    public void searchMemberByNameAndAge() {
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .where(member.username.eq("member1")
+                        .and(member.age.eq(10)))
+                .fetchOne();
+
+        assertThat(findMember.getUsername()).isEqualTo("member1");
+        assertThat(findMember.getAge()).isEqualTo(10);
+    }
+
+    @Test
+    @DisplayName("검색조건을 추가 시 parameter를 사용하여 코드를 작성하는 방식")
+    public void searchMemberByNameAndAgeWithParam() {
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .where(
+                        member.username.eq("member1"),
+                        member.age.eq(10)
+                )
+                .fetchOne();
+
+        assertThat(findMember.getUsername()).isEqualTo("member1");
+        assertThat(findMember.getAge()).isEqualTo(10);
+    }
+
 }
