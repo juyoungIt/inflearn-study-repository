@@ -1,5 +1,7 @@
 package study.querydsl;
 
+import com.querydsl.core.NonUniqueResultException;
+import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.entity.Member;
 import study.querydsl.entity.QMember;
 import study.querydsl.entity.Team;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 import static study.querydsl.entity.QMember.*;
@@ -120,6 +124,57 @@ public class QuerydslBasicTest {
 
         assertThat(findMember.getUsername()).isEqualTo("member1");
         assertThat(findMember.getAge()).isEqualTo(10);
+    }
+
+    @Test
+    @DisplayName(".fetch()를 사용해서 조회한 목록을 리스트로 가져온다")
+    public void searchMembers() {
+        List<Member> members = queryFactory
+                .selectFrom(member)
+                .fetch();
+
+        assertThat(members.size()).isEqualTo(4);
+    }
+
+    @Test
+    @DisplayName(".fetchOne()을 사용해서 조회한 Entity를 가져온다")
+    public void searchMember() {
+        assertThatThrownBy(() -> queryFactory
+                .selectFrom(member)
+                .fetchOne())
+                .isInstanceOf(NonUniqueResultException.class);
+    }
+
+    @Test
+    @DisplayName(".fetchFirst()을 사용해서 목록 중 첫번째만 가져온다")
+    public void searchFirstMember() {
+        Member firstMember = queryFactory
+                .selectFrom(member)
+                .fetchFirst();
+
+        assertThat(firstMember).isInstanceOf(Member.class);
+    }
+
+    @Test
+    @DisplayName(".fetchResults()를 사용해서 페이징 정보와 함께 조회한다.")
+    public void searchMemberWithPagingInfo() {
+        QueryResults<Member> results = queryFactory
+                .selectFrom(member)
+                .fetchResults();
+
+        assertThat(results.getTotal()).isEqualTo(4);
+        assertThat(results.getResults()).isInstanceOf(List.class);
+        assertThat(results.getResults().size()).isEqualTo(4);
+    }
+
+    @Test
+    @DisplayName(".fetchCount()를 사용해서 목록의 갯수를 조회한다.")
+    public void searchMemberCounts() {
+        long counts = queryFactory
+                .selectFrom(member)
+                .fetchCount();
+
+        assertThat(counts).isEqualTo(4);
     }
 
 }
