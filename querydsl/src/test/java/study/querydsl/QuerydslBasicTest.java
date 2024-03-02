@@ -3,6 +3,7 @@ package study.querydsl;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,6 +13,7 @@ import study.querydsl.entity.QMember;
 import study.querydsl.entity.Team;
 
 import static org.assertj.core.api.Assertions.*;
+import static study.querydsl.entity.QMember.*;
 
 @SpringBootTest
 @Transactional
@@ -42,6 +44,7 @@ public class QuerydslBasicTest {
     }
 
     @Test
+    @DisplayName("JPQL을 사용하여 member를 조회하는 경우")
     public void startJPQL() {
         String queryString = "select m from Member m where m.username = :username";
         Member member = em.createQuery(queryString, Member.class)
@@ -51,6 +54,7 @@ public class QuerydslBasicTest {
     }
 
     @Test
+    @DisplayName("alias를 직접 지정하여 사용하는 방식")
     public void startQuerydsl() {
         QMember m = new QMember("m"); // 인자 m은 어떤 QMember 인지 구분하기 위함
 
@@ -61,6 +65,33 @@ public class QuerydslBasicTest {
                 .fetchOne();
 
         assertThat(member.getUsername()).isEqualTo("member1");
+    }
+
+        @Test
+        @DisplayName("사전에 생성된 기본 인스턴스를 사용하는 방식")
+        public void startQuerydslWithBasicQType() {
+            QMember m = QMember.member;
+
+            Member member = queryFactory
+                    .select(m)
+                    .from(m)
+                    .where(m.username.eq("member1"))
+                    .fetchOne();
+
+            assertThat(member.getUsername()).isEqualTo("member1");
+        }
+
+    @Test
+    @DisplayName("static import를 사용하여 더 간결하게 코드를 작성하는 방식")
+    public void startQuerydslWithQTypeStaticImport() {
+        // 이 방식으로의 사용을 권장한다.
+        Member findMember = queryFactory
+                .select(member)
+                .from(member)
+                .where(member.username.eq("member1"))
+                .fetchOne();
+
+        assertThat(findMember.getUsername()).isEqualTo("member1");
     }
 
 }
