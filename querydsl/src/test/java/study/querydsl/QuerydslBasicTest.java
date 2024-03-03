@@ -3,6 +3,7 @@ package study.querydsl;
 import com.querydsl.core.NonUniqueResultException;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -502,5 +503,43 @@ public class QuerydslBasicTest {
         for (Tuple tuple : result) {
             assertThat(tuple.get(select(memberSub.age.avg()).from(memberSub))).isEqualTo(25);
         }
+    }
+
+    @Test
+    @DisplayName("Case가 심플한 경우")
+    public void basicCase() {
+        List<String> result = queryFactory
+                .select(member.age
+                        .when(10).then("10세")
+                        .when(20).then("20세")
+                        .when(30).then("30세")
+                        .when(40).then("40세")
+                        .otherwise("그 이상"))
+                .from(member)
+                .orderBy(member.age.asc())
+                .fetch();
+
+        assertThat(result.get(0)).isEqualTo("10세");
+        assertThat(result.get(1)).isEqualTo("20세");
+        assertThat(result.get(2)).isEqualTo("30세");
+        assertThat(result.get(3)).isEqualTo("40세");
+    }
+
+    @Test
+    @DisplayName("Case가 복잡한 경우")
+    public void complexCase() {
+        List<String> result = queryFactory
+                .select(new CaseBuilder()
+                        .when(member.age.between(0, 20)).then("어린나이")
+                        .when(member.age.between(21, 40)).then("좋을나이")
+                        .when(member.age.goe(41)).then("멋진나이")
+                        .otherwise("기타"))
+                .from(member)
+                .fetch();
+
+        assertThat(result.get(0)).isEqualTo("어린나이");
+        assertThat(result.get(1)).isEqualTo("어린나이");
+        assertThat(result.get(2)).isEqualTo("좋을나이");
+        assertThat(result.get(3)).isEqualTo("좋을나이");
     }
 }
