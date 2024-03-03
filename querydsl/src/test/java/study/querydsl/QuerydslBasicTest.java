@@ -4,6 +4,7 @@ import com.querydsl.core.NonUniqueResultException;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -541,5 +542,34 @@ public class QuerydslBasicTest {
         assertThat(result.get(1)).isEqualTo("어린나이");
         assertThat(result.get(2)).isEqualTo("좋을나이");
         assertThat(result.get(3)).isEqualTo("좋을나이");
+    }
+
+    @Test
+    @DisplayName("멤버의 이름과 그 옆에 A를 붙여서 함께 반환한다.")
+    public void constant() {
+        List<Tuple> result = queryFactory
+                .select(member.username, Expressions.constant('A'))
+                .from(member)
+                .fetch();
+
+        for (Tuple tuple : result) {
+            assertThat(tuple.get(Expressions.constant('A'))).isEqualTo('A');
+        }
+    }
+
+    @Test
+    @DisplayName("'멤버의 이름_나이'의 형식으로 출력한다.")
+    public void concat() {
+        List<String> result = queryFactory
+                .select(member.username
+                        .concat("_")
+                        .concat(member.age.stringValue()))
+                .from(member)
+                .fetch();
+
+        assertThat(result.get(0)).isEqualTo("member1_10");
+        assertThat(result.get(1)).isEqualTo("member2_20");
+        assertThat(result.get(2)).isEqualTo("member3_30");
+        assertThat(result.get(3)).isEqualTo("member4_40");
     }
 }
