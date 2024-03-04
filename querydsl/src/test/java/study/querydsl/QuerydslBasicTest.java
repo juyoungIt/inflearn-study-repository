@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.MemberDTO;
+import study.querydsl.dto.QMemberDTO;
 import study.querydsl.dto.UserDTO;
 import study.querydsl.entity.Member;
 import study.querydsl.entity.QMember;
@@ -751,6 +752,24 @@ public void simpleProjection() {
         assertThat(result.get(2).getName()).isEqualTo("member3");
         assertThat(result.get(2).getAge()).isEqualTo(30);
         assertThat(result.get(3).getName()).isEqualTo("member4");
+        assertThat(result.get(3).getAge()).isEqualTo(40);
+    }
+
+    @Test
+    @DisplayName("@QueryProjection을 사용해서 projection 필드값을 세팅")
+    public void findDTOByQueryProjection() {
+        List<MemberDTO> result = queryFactory
+                .select(new QMemberDTO(member.username, member.age))
+                .from(member)
+                .fetch();
+
+        assertThat(result.get(0).getUsername()).isEqualTo("member1");
+        assertThat(result.get(0).getAge()).isEqualTo(10);
+        assertThat(result.get(1).getUsername()).isEqualTo("member2");
+        assertThat(result.get(1).getAge()).isEqualTo(20);
+        assertThat(result.get(2).getUsername()).isEqualTo("member3");
+        assertThat(result.get(2).getAge()).isEqualTo(30);
+        assertThat(result.get(3).getUsername()).isEqualTo("member4");
         assertThat(result.get(3).getAge()).isEqualTo(40);
     }
 }
