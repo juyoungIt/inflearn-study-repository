@@ -572,4 +572,50 @@ public class QuerydslBasicTest {
         assertThat(result.get(2)).isEqualTo("member3_30");
         assertThat(result.get(3)).isEqualTo("member4_40");
     }
+
+@Test
+@DisplayName("프로젝션 대상이 하나인 경우")
+public void simpleProjection() {
+    List<String> result = queryFactory
+            .select(member.username)
+            .from(member)
+            .orderBy(member.username.asc())
+            .fetch();
+
+    assertThat(result.get(0))
+            .isInstanceOf(String.class)
+            .isEqualTo("member1");
+    assertThat(result.get(1))
+            .isInstanceOf(String.class)
+            .isEqualTo("member2");
+    assertThat(result.get(2))
+            .isInstanceOf(String.class)
+            .isEqualTo("member3");
+    assertThat(result.get(3))
+            .isInstanceOf(String.class)
+            .isEqualTo("member4");
+}
+
+    @Test
+    @DisplayName("프로젝션 대상이 둘 이상인 경우 - Tuple")
+    public void tupleProjection() {
+        List<Tuple> result = queryFactory
+                .select(member.username, member.age)
+                .from(member)
+                .orderBy(member.username.asc())
+                .fetch();
+
+        assertThat(result.get(0)).isInstanceOf(Tuple.class);
+        assertThat(result.get(0).get(member.username)).isEqualTo("member1");
+        assertThat(result.get(0).get(member.age)).isEqualTo(10);
+        assertThat(result.get(1)).isInstanceOf(Tuple.class);
+        assertThat(result.get(1).get(member.username)).isEqualTo("member2");
+        assertThat(result.get(1).get(member.age)).isEqualTo(20);
+        assertThat(result.get(2)).isInstanceOf(Tuple.class);
+        assertThat(result.get(2).get(member.username)).isEqualTo("member3");
+        assertThat(result.get(2).get(member.age)).isEqualTo(30);
+        assertThat(result.get(3)).isInstanceOf(Tuple.class);
+        assertThat(result.get(3).get(member.username)).isEqualTo("member4");
+        assertThat(result.get(3).get(member.age)).isEqualTo(40);
+    }
 }
