@@ -3,8 +3,11 @@ package study.querydsl;
 import com.querydsl.core.NonUniqueResultException;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -15,6 +18,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import study.querydsl.dto.MemberDTO;
+import study.querydsl.dto.UserDTO;
 import study.querydsl.entity.Member;
 import study.querydsl.entity.QMember;
 import study.querydsl.entity.Team;
@@ -617,5 +622,135 @@ public void simpleProjection() {
         assertThat(result.get(3)).isInstanceOf(Tuple.class);
         assertThat(result.get(3).get(member.username)).isEqualTo("member4");
         assertThat(result.get(3).get(member.age)).isEqualTo(40);
+    }
+
+    @Test
+    @DisplayName("순수 JPA에서 DTO로 조회")
+    public void findDTOByJPQL() {
+        List<MemberDTO> result = em.createQuery(
+                "select new study.querydsl.dto.MemberDTO(m.username, m.age) "
+                        + "from Member m "
+                        + "order by m.username asc",
+                MemberDTO.class).getResultList();
+
+        assertThat(result.get(0).getUsername()).isEqualTo("member1");
+        assertThat(result.get(0).getAge()).isEqualTo(10);
+        assertThat(result.get(1).getUsername()).isEqualTo("member2");
+        assertThat(result.get(1).getAge()).isEqualTo(20);
+        assertThat(result.get(2).getUsername()).isEqualTo("member3");
+        assertThat(result.get(2).getAge()).isEqualTo(30);
+        assertThat(result.get(3).getUsername()).isEqualTo("member4");
+        assertThat(result.get(3).getAge()).isEqualTo(40);
+    }
+
+    @Test
+    @DisplayName("setter를 사용해서 projection 필드값 세팅")
+    public void findDTOBySetter() {
+        List<MemberDTO> result = queryFactory
+                .select(Projections.bean(MemberDTO.class,
+                        member.username,
+                        member.age))
+                .from(member)
+                .orderBy(member.username.asc())
+                .fetch();
+
+        assertThat(result.get(0).getUsername()).isEqualTo("member1");
+        assertThat(result.get(0).getAge()).isEqualTo(10);
+        assertThat(result.get(1).getUsername()).isEqualTo("member2");
+        assertThat(result.get(1).getAge()).isEqualTo(20);
+        assertThat(result.get(2).getUsername()).isEqualTo("member3");
+        assertThat(result.get(2).getAge()).isEqualTo(30);
+        assertThat(result.get(3).getUsername()).isEqualTo("member4");
+        assertThat(result.get(3).getAge()).isEqualTo(40);
+    }
+
+    @Test
+    @DisplayName("field를 사용해서 projection 필드값 세팅")
+    public void findDTOByField() {
+        List<MemberDTO> result = queryFactory
+                .select(Projections.fields(MemberDTO.class,
+                        member.username,
+                        member.age))
+                .from(member)
+                .orderBy(member.username.asc())
+                .fetch();
+
+        assertThat(result.get(0).getUsername()).isEqualTo("member1");
+        assertThat(result.get(0).getAge()).isEqualTo(10);
+        assertThat(result.get(1).getUsername()).isEqualTo("member2");
+        assertThat(result.get(1).getAge()).isEqualTo(20);
+        assertThat(result.get(2).getUsername()).isEqualTo("member3");
+        assertThat(result.get(2).getAge()).isEqualTo(30);
+        assertThat(result.get(3).getUsername()).isEqualTo("member4");
+        assertThat(result.get(3).getAge()).isEqualTo(40);
+    }
+
+    @Test
+    @DisplayName("생성자를 사용해서 projection 필드값 세팅")
+    public void findDTOByConstructor() {
+        List<MemberDTO> result = queryFactory
+                .select(Projections.constructor(MemberDTO.class,
+                        member.username,
+                        member.age))
+                .from(member)
+                .orderBy(member.username.asc())
+                .fetch();
+
+        assertThat(result.get(0).getUsername()).isEqualTo("member1");
+        assertThat(result.get(0).getAge()).isEqualTo(10);
+        assertThat(result.get(1).getUsername()).isEqualTo("member2");
+        assertThat(result.get(1).getAge()).isEqualTo(20);
+        assertThat(result.get(2).getUsername()).isEqualTo("member3");
+        assertThat(result.get(2).getAge()).isEqualTo(30);
+        assertThat(result.get(3).getUsername()).isEqualTo("member4");
+        assertThat(result.get(3).getAge()).isEqualTo(40);
+    }
+
+    @Test
+    @DisplayName("DTO 필드와 projection 필드명이 일치하지 않는 경우 세팅")
+    public void findByUserDTO() {
+        List<UserDTO> result = queryFactory
+                .select(Projections.fields(UserDTO.class,
+                        member.username.as("name"),
+                        member.age))
+                .from(member)
+                .orderBy(member.username.asc())
+                .fetch();
+
+        assertThat(result.get(0).getName()).isEqualTo("member1");
+        assertThat(result.get(0).getAge()).isEqualTo(10);
+        assertThat(result.get(1).getName()).isEqualTo("member2");
+        assertThat(result.get(1).getAge()).isEqualTo(20);
+        assertThat(result.get(2).getName()).isEqualTo("member3");
+        assertThat(result.get(2).getAge()).isEqualTo(30);
+        assertThat(result.get(3).getName()).isEqualTo("member4");
+        assertThat(result.get(3).getAge()).isEqualTo(40);
+    }
+
+    @Test
+    @DisplayName("DTO 필드와 projection 필드명이 일치하지 않는 경우 세팅 - 서브쿼리를 사용할 때")
+    public void findByUserDTOWithSubQuery() {
+        QMember memberSub = new QMember("memberSub");
+        List<UserDTO> result = queryFactory
+                .select(Projections.fields(UserDTO.class,
+                        member.username.as("name"),
+                        ExpressionUtils.as(
+                                JPAExpressions
+                                        .select(member.age.max())
+                                        .from(memberSub),
+                                "age"
+                        )))
+                .from(member)
+                .orderBy(member.username.asc())
+                .fetch();
+
+        assertThat(result.get(0).getName()).isEqualTo("member1");
+        assertThat(result.get(0).getAge()).isEqualTo(10);
+        assertThat(result.get(1).getName()).isEqualTo("member2");
+        assertThat(result.get(1).getAge()).isEqualTo(20);
+        assertThat(result.get(2).getName()).isEqualTo("member3");
+        assertThat(result.get(2).getAge()).isEqualTo(30);
+        assertThat(result.get(3).getName()).isEqualTo("member4");
+        assertThat(result.get(3).getAge()).isEqualTo(40);
     }
 }
