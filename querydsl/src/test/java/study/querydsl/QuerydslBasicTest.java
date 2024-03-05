@@ -19,6 +19,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.MemberDTO;
 import study.querydsl.dto.QMemberDTO;
@@ -921,4 +922,101 @@ public void simpleProjection() {
                 : member.age.eq(ageCond);
     }
 
+    @Test
+    @DisplayName("나이가 28세 미만인 회원에 대해서 이름을 '비회원'으로 변경한다.")
+    public void bulkUpdate() {
+        long count = queryFactory
+                .update(member)
+                .set(member.username, "비회원")
+                .where(member.age.lt(28))
+                .execute();
+
+        em.flush();
+        em.clear();
+
+        List<Member> result = queryFactory
+                .selectFrom(member)
+                .orderBy(member.age.asc())
+                .fetch();
+
+        assertThat(count).isEqualTo(2); // member1, member2만 영향을 받음
+        assertThat(result.get(0).getUsername()).isEqualTo("비회원");
+        assertThat(result.get(0).getAge()).isEqualTo(10);
+        assertThat(result.get(1).getUsername()).isEqualTo("비회원");
+        assertThat(result.get(1).getAge()).isEqualTo(20);
+        assertThat(result.get(2).getUsername()).isEqualTo("member3");
+        assertThat(result.get(2).getAge()).isEqualTo(30);
+        assertThat(result.get(3).getUsername()).isEqualTo("member4");
+        assertThat(result.get(3).getAge()).isEqualTo(40);
+    }
+
+    @Test
+    @DisplayName("모든 회원의 나이를 1살 씩 증가시킨다.")
+    public void bulkAdd() {
+        long count = queryFactory
+                .update(member)
+                .set(member.age, member.age.add(1))
+                .execute();
+
+        /* 벌크 연산이 돌았으므로 영속성 컨텍스트를 초기화함 */
+        em.flush();
+        em.clear();
+
+        List<Member> result = queryFactory
+                .selectFrom(member)
+                .orderBy(member.age.asc())
+                .fetch();
+
+        assertThat(count).isEqualTo(4);
+        assertThat(result.get(0).getAge()).isEqualTo(11);
+        assertThat(result.get(1).getAge()).isEqualTo(21);
+        assertThat(result.get(2).getAge()).isEqualTo(31);
+        assertThat(result.get(3).getAge()).isEqualTo(41);
+    }
+
+    @Test
+    @DisplayName("모든 회원의 나이에 2를 곱한다.")
+    public void bulkMultiply() {
+        long count = queryFactory
+                .update(member)
+                .set(member.age, member.age.multiply(2))
+                .execute();
+
+        /* 벌크 연산이 돌았으므로 영속성 컨텍스트를 초기화함 */
+        em.flush();
+        em.clear();
+
+        List<Member> result = queryFactory
+                .selectFrom(member)
+                .orderBy(member.age.asc())
+                .fetch();
+
+        assertThat(count).isEqualTo(4);
+        assertThat(result.get(0).getAge()).isEqualTo(20);
+        assertThat(result.get(1).getAge()).isEqualTo(40);
+        assertThat(result.get(2).getAge()).isEqualTo(60);
+        assertThat(result.get(3).getAge()).isEqualTo(80);
+    }
+
+    @Test
+    @DisplayName("나이가 18살 이상인 회원들을 삭제한다.")
+    public void bulkDelete() {
+        long count = queryFactory
+                .delete(member)
+                .where(member.age.gt(18))
+                .execute();
+
+        /* 벌크 연산을 수행했으므로 영속성 컨텍스를 초기화 */
+        em.flush();
+        em.clear();
+
+        List<Member> result = queryFactory
+                .selectFrom(member)
+                .orderBy(member.username.asc())
+                .fetch();
+
+        assertThat(count).isEqualTo(3);
+        assertThat(result.get(0).getUsername()).isEqualTo("member1");
+        assertThat(result.get(0).getAge()).isEqualTo(10);
+    }
 }
