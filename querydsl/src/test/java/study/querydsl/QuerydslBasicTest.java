@@ -1,5 +1,6 @@
 package study.querydsl;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.NonUniqueResultException;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
@@ -772,4 +773,75 @@ public void simpleProjection() {
         assertThat(result.get(3).getUsername()).isEqualTo("member4");
         assertThat(result.get(3).getAge()).isEqualTo(40);
     }
+
+    @Test
+    @DisplayName("동적쿼리 BooleanBuilder - 이름이 'member1', 나이가 10살인 회원을 찾는다.")
+    public void dynamicQueryWithBooleanBuilder1() {
+        /* 테스트를 목적으로 임시로 세팅하는 데이터 */
+        String usernameCond = "member1";
+        Integer ageCond = 10;
+
+        List<Member> result = searchMember1(usernameCond, ageCond);
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getUsername()).isEqualTo("member1");
+        assertThat(result.get(0).getAge()).isEqualTo(10);
+    }
+
+    @Test
+    @DisplayName("동적쿼리 BooleanBuilder - 이름이 'member1'인 회원을 찾는다.")
+    public void dynamicQueryWithBooleanBuilder2() {
+        /* 테스트를 목적으로 임시로 세팅하는 데이터 */
+        String usernameCond = "member1";
+        Integer ageCond = null;
+
+        List<Member> result = searchMember1(usernameCond, ageCond);
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getUsername()).isEqualTo("member1");
+    }
+
+    @Test
+    @DisplayName("동적쿼리 BooleanBuilder - 나이가 10세 인 회원을 찾는다.")
+    public void dynamicQueryWithBooleanBuilder3() {
+        /* 테스트를 목적으로 임시로 세팅하는 데이터 */
+        String usernameCond = null;
+        Integer ageCond = 10;
+
+        List<Member> result = searchMember1(usernameCond, ageCond);
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getAge()).isEqualTo(10);
+    }
+
+    @Test
+    @DisplayName("동적쿼리 BooleanBuilder - 조건이 없어 그냥 전체를 조회한다.")
+    public void dynamicQueryWithBooleanBuilder4() {
+        /* 테스트를 목적으로 임시로 세팅하는 데이터 */
+        String usernameCond = null;
+        Integer ageCond = null;
+
+        List<Member> result = searchMember1(usernameCond, ageCond);
+        assertThat(result).hasSize(4);
+        assertThat(result.get(0).getUsername()).isEqualTo("member1");
+        assertThat(result.get(0).getAge()).isEqualTo(10);
+        assertThat(result.get(1).getUsername()).isEqualTo("member2");
+        assertThat(result.get(1).getAge()).isEqualTo(20);
+        assertThat(result.get(2).getUsername()).isEqualTo("member3");
+        assertThat(result.get(2).getAge()).isEqualTo(30);
+        assertThat(result.get(3).getUsername()).isEqualTo("member4");
+        assertThat(result.get(3).getAge()).isEqualTo(40);
+    }
+
+    private List<Member> searchMember1(String usernameCond, Integer ageCond) {
+        BooleanBuilder booleanBuilder = new BooleanBuilder();
+        if (usernameCond != null) {
+            booleanBuilder.and(member.username.eq(usernameCond));
+        }
+        if (ageCond != null) {
+            booleanBuilder.and(member.age.eq(ageCond));
+        }
+        return queryFactory
+                .selectFrom(member)
+                .where(booleanBuilder)
+                .fetch();
+    }
+
 }
