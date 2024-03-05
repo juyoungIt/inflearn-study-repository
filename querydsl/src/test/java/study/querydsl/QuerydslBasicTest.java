@@ -5,6 +5,7 @@ import com.querydsl.core.NonUniqueResultException;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
@@ -842,6 +843,82 @@ public void simpleProjection() {
                 .selectFrom(member)
                 .where(booleanBuilder)
                 .fetch();
+    }
+
+    @Test
+    @DisplayName("동적쿼리 Where Params - 이름이 'member1', 나이가 10살인 회원을 찾는다.")
+    public void dynamicQueryWithWhereParams1() {
+        /* 테스트 목적으로 임시로 세팅하는 데이터 */
+        String usernameCond = "member1";
+        Integer ageCond = 10;
+
+        List<Member> result = searchMember2(usernameCond, ageCond);
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getUsername()).isEqualTo("member1");
+        assertThat(result.get(0).getAge()).isEqualTo(10);
+    }
+
+    @Test
+    @DisplayName("동적쿼리 Where Params - 이름이 'member1'인 회원을 찾는다.")
+    public void dynamicQueryWithWhereParams2() {
+        /* 테스트 목적으로 임시로 세팅하는 데이터 */
+        String usernameCond = "member1";
+        Integer ageCond = null;
+
+        List<Member> result = searchMember2(usernameCond, ageCond);
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getUsername()).isEqualTo("member1");
+    }
+
+    @Test
+    @DisplayName("동적쿼리 Where Params - 나이가 10살인 회원을 찾는다.")
+    public void dynamicQueryWithWhereParams3() {
+        /* 테스트 목적으로 임시로 세팅하는 데이터 */
+        String usernameCond = null;
+        Integer ageCond = 10;
+
+        List<Member> result = searchMember2(usernameCond, ageCond);
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getAge()).isEqualTo(10);
+    }
+
+    @Test
+    @DisplayName("동적쿼리 Where Params - 조건이 없어 그냥 전체를 조회한다.")
+    public void dynamicQueryWithWhereParams4() {
+        /* 테스트 목적으로 임시로 세팅하는 데이터 */
+        String usernameCond = null;
+        Integer ageCond = null;
+
+        List<Member> result = searchMember2(usernameCond, ageCond);
+        assertThat(result).hasSize(4);
+        assertThat(result.get(0).getUsername()).isEqualTo("member1");
+        assertThat(result.get(0).getAge()).isEqualTo(10);
+        assertThat(result.get(1).getUsername()).isEqualTo("member2");
+        assertThat(result.get(1).getAge()).isEqualTo(20);
+        assertThat(result.get(2).getUsername()).isEqualTo("member3");
+        assertThat(result.get(2).getAge()).isEqualTo(30);
+        assertThat(result.get(3).getUsername()).isEqualTo("member4");
+        assertThat(result.get(3).getAge()).isEqualTo(40);
+    }
+
+    private List<Member> searchMember2(String usernameCond, Integer ageCond) {
+        return queryFactory
+                .selectFrom(member)
+                .where(usernameEq(usernameCond), ageEq(ageCond))
+                .fetch();
+
+    }
+
+    private Predicate usernameEq(String usernameCond) {
+        return usernameCond == null
+                ? null
+                :  member.username.eq(usernameCond);
+    }
+
+    private Predicate ageEq(Integer ageCond) {
+        return ageCond == null
+                ? null
+                : member.age.eq(ageCond);
     }
 
 }
