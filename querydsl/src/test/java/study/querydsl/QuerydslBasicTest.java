@@ -1019,4 +1019,59 @@ public void simpleProjection() {
         assertThat(result.get(0).getUsername()).isEqualTo("member1");
         assertThat(result.get(0).getAge()).isEqualTo(10);
     }
+
+    @Test
+    @DisplayName("회원 명에서 member -> M으로 replace 함수를 사용하여 변경한다.")
+    public void sqlFunction() {
+        List<String> result = queryFactory
+                .select(Expressions.stringTemplate(
+                        "function('replace', {0}, {1}, {2})",
+                        member.username, "member", "M"
+                ))
+                .from(member)
+                .orderBy(member.age.asc())
+                .fetch();
+
+        assertThat(result.get(0)).isEqualTo("M1");
+        assertThat(result.get(1)).isEqualTo("M2");
+        assertThat(result.get(2)).isEqualTo("M3");
+        assertThat(result.get(3)).isEqualTo("M4");
+    }
+
+    @Test
+    @DisplayName("회원명이 소문자로 변환 시에도 원래 이름과 동일한 회원을 조회한다.")
+    public void sqlFunction2() {
+        List<String> result = queryFactory
+                .select(member.username)
+                .from(member)
+                .where(member.username.eq(
+                        Expressions.stringTemplate("function('lower', {0})", member.username))
+                )
+                .orderBy(member.username.asc())
+                .fetch();
+
+        assertThat(result).hasSize(4);
+        assertThat(result.get(0)).isEqualTo("member1");
+        assertThat(result.get(1)).isEqualTo("member2");
+        assertThat(result.get(2)).isEqualTo("member3");
+        assertThat(result.get(3)).isEqualTo("member4");
+    }
+
+    @Test
+    @DisplayName("회원명이 소문자로 변환 시에도 원래 이름과 동일한 회원을 조회한다. - Querydsl supports")
+    public void sqlFunction3() {
+        /* 기존 sqlFunction2의 코드를 다음과 같이 작성할 수 있다. */
+        List<String> result = queryFactory
+                .select(member.username)
+                .from(member)
+                .where(member.username.eq(member.username.lower()))
+                .orderBy(member.username.asc())
+                .fetch();
+
+        assertThat(result).hasSize(4);
+        assertThat(result.get(0)).isEqualTo("member1");
+        assertThat(result.get(1)).isEqualTo("member2");
+        assertThat(result.get(2)).isEqualTo("member3");
+        assertThat(result.get(3)).isEqualTo("member4");
+    }
 }
