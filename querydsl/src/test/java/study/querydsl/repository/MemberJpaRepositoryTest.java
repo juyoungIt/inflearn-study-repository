@@ -58,7 +58,7 @@ class MemberJpaRepositoryTest {
     }
 
     @Test
-    @DisplayName("나이가 35세 이상, 40세 이하 이면서 'teamB' 라는 이름을 가진 팀에 소속된 회원을 찾는다.")
+    @DisplayName("Builder - 나이가 35세 이상, 40세 이하 이면서 'teamB' 라는 이름을 가진 팀에 소속된 회원을 찾는다.")
     public void searchTest1() {
         Team teamA = new Team("teamA");
         Team teamB = new Team("teamB");
@@ -85,7 +85,7 @@ class MemberJpaRepositoryTest {
     }
 
     @Test
-    @DisplayName("'teamB' 라는 이름을 가진 팀에 소속된 회원을 찾는다.")
+    @DisplayName("Builder - 'teamB' 라는 이름을 가진 팀에 소속된 회원을 찾는다.")
     public void searchTest2() {
         Team teamA = new Team("teamA");
         Team teamB = new Team("teamB");
@@ -106,6 +106,58 @@ class MemberJpaRepositoryTest {
         condition.setTeamName("teamB");
 
         List<MemberTeamDTO> result = memberJpaRepository.searchByBuilder(condition);
+        assertThat(result).extracting("username").containsExactly("member3", "member4");
+    }
+
+    @Test
+    @DisplayName("Where절 파라미터 - 나이가 35세 이상, 40세 이하 이면서 'teamB' 라는 이름을 가진 팀에 소속된 회원을 찾는다.")
+    public void searchTest3() {
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+        em.persist(teamA);
+        em.persist(teamB);
+
+        Member member1 = new Member("member1", 10, teamA);
+        Member member2 = new Member("member2", 20, teamA);
+
+        Member member3 = new Member("member3", 30, teamB);
+        Member member4 = new Member("member4", 40, teamB);
+        em.persist(member1);
+        em.persist(member2);
+        em.persist(member3);
+        em.persist(member4);
+
+        MemberSearchCondition condition = new MemberSearchCondition();
+        condition.setAgeGoe(35);
+        condition.setAgeLoe(40);
+        condition.setTeamName("teamB");
+
+        List<MemberTeamDTO> result = memberJpaRepository.searchByWhereParameter(condition);
+        assertThat(result).extracting("username").containsExactly("member4");
+    }
+
+    @Test
+    @DisplayName("Where절 파라미터 -'teamB' 라는 이름을 가진 팀에 소속된 회원을 찾는다.")
+    public void searchTest4() {
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+        em.persist(teamA);
+        em.persist(teamB);
+
+        Member member1 = new Member("member1", 10, teamA);
+        Member member2 = new Member("member2", 20, teamA);
+
+        Member member3 = new Member("member3", 30, teamB);
+        Member member4 = new Member("member4", 40, teamB);
+        em.persist(member1);
+        em.persist(member2);
+        em.persist(member3);
+        em.persist(member4);
+
+        MemberSearchCondition condition = new MemberSearchCondition();
+        condition.setTeamName("teamB");
+
+        List<MemberTeamDTO> result = memberJpaRepository.searchByWhereParameter(condition);
         assertThat(result).extracting("username").containsExactly("member3", "member4");
     }
 
