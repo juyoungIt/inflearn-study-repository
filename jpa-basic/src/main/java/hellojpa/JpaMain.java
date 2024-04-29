@@ -14,30 +14,30 @@ public class JpaMain {
 
         /* 하나의 Transaction 내에서 처리 */
         try {
-            /* Member 정보를 저장 -> DB로 Insert 쿼리 날아감 */
+
+            Team team = new Team();
+            team.setName("TEAM1");
+            em.persist(team);
+
             Member member = new Member();
-            member.setId(1L);
             member.setName("ryan");
+            member.setTeam(team);
             em.persist(member);
 
-            /* Member 정보를 조회 -> DB로 Select 쿼리 날아가지 않음 */
-            /* -> 동일 Transaction 내에서의 요청이므로 영속성 컨텍스트에서 조회하며, DB에 직접 조회하지 않음 */
-            Member findMember = em.find(Member.class, 1L);
-            System.out.println("findMember.id : " + findMember.getId());
-            System.out.println("findMember.name : " + findMember.getName());
+            /* 영속성 컨텍스트의 동작과 함께 생각해보기 */
+            em.flush();
+            em.clear();
 
-            /* Member 정보를 수정 -> DB로 Update 쿼리 날아감 */
-            findMember.setName("Choonsik");
-
-            /* Member 정보를 삭제 */
-            em.remove(findMember);
+            Member findMember = em.find(Member.class, member.getId());
+            System.out.println("findMember.id = " + findMember.getId());
+            System.out.println("findMember.name = " + findMember.getName());
+            System.out.println("findMember.team.id = " + findMember.getTeam().getId());
+            System.out.println("findMember.team.name = " + findMember.getTeam().getName());
 
             tx.commit(); // Transaction 내 변경사항을 커밋함
         } catch (Exception e) {
             tx.rollback(); //  Transaction 내 변경사항을 롤백함
         } finally {
-            /* Entity Manager는 내부적으로 DB Connection을 물고 동작한다. */
-            /* -> 그래서 이를 닫아주는 작업을 하는 것은 대단히 중요하다. */
             em.close();
             emf.close();
         }
