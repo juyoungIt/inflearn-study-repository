@@ -26,6 +26,10 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
+    @OneToOne
+    @JoinColumn(name = "DEVLIVERY_ID")
+    private Delivery delivery;
+
     public Long getId() {
         return id;
     }
