@@ -17,25 +17,18 @@ public class JpaMain {
         /* 하나의 Transaction 내에서 처리 */
         try {
 
-            Team team = new Team();
-            team.setName("TEAM1");
-            em.persist(team);
+            Movie movie = new Movie();
+            movie.setDirector("ryan");
+            movie.setDirector("choonsik");
+            movie.setName("도도도 춘식이");
+            movie.setPrice(10_000);
 
-            Member member = new Member();
-            member.setName("ryan");
-            member.changeTeam(team); // 연관관계 편의 메서드로 값을 세팅
-            em.persist(member);
+            em.persist(movie);
 
-            /* 영속성 컨텍스트의 동작과 함께 생각해보기 */
             em.flush();
             em.clear();
 
-            Member findMember = em.find(Member.class, member.getId());
-            List<Member> members = findMember.getTeam().getMembers();
-
-            for (Member m : members) {
-                System.out.println("m = " + m.getName());
-            }
+            Movie findMovie = em.find(Movie.class, movie.getId());
 
             tx.commit(); // Transaction 내 변경사항을 커밋함
         } catch (Exception e) {
