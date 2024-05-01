@@ -38,4 +38,10 @@ public class Member {
     public void setTeam(Team team) {
         this.team = team;
     }
+
+    /* 연관관계 편의 메서드 */
+    public void changeTeam(Team team) {
+        this.team = team;
+        team.getMembers().add(this);
+    }
 }

@@ -23,7 +23,7 @@ public class JpaMain {
 
             Member member = new Member();
             member.setName("ryan");
-            member.setTeam(team);
+            member.changeTeam(team); // 연관관계 편의 메서드로 값을 세팅
             em.persist(member);
 
             /* 영속성 컨텍스트의 동작과 함께 생각해보기 */
