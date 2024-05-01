@@ -2,7 +2,8 @@ package hellojpa;
 
 import jakarta.persistence.*;
 
-@Entity
+@Entity(name = "DemoMember")
+@Table(name = "DemoMember")
 public class Member {
 
     @Id @GeneratedValue
