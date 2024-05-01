@@ -2,6 +2,9 @@ package hellojpa;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity(name = "DemoMember")
 @Table(name = "DemoMember")
 public class Member {
@@ -19,6 +22,11 @@ public class Member {
     @OneToOne
     @JoinColumn(name = "LOCKER_ID")
     private Locker locker;
+
+    /* 한계점이 분명... 실무에서는 거의 사용하지 않는다. */
+    @ManyToMany
+    @JoinTable(name = "MEMBER_RPODUCT")
+    private List<Product> products = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -48,5 +56,21 @@ public class Member {
     public void changeTeam(Team team) {
         this.team = team;
         team.getMembers().add(this);
+    }
+
+    public Locker getLocker() {
+        return locker;
+    }
+
+    public void setLocker(Locker locker) {
+        this.locker = locker;
+    }
+
+    public List<Product> getProducts() {
+        return products;
+    }
+
+    public void setProducts(List<Product> products) {
+        this.products = products;
     }
 }
