@@ -1,10 +1,8 @@
-package hellojpa;
+package jpashop.domain;
 
-import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
-@Entity(name = "BaseBook")
-@DiscriminatorValue("B")
+@Entity
 public class Book extends Item {
 
     private String author;

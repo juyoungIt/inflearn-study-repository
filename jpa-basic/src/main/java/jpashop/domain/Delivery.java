@@ -3,7 +3,7 @@ package jpashop.domain;
 import jakarta.persistence.*;
 
 @Entity
-public class Delivery {
+public class Delivery extends BaseEntity {
 
     @Id @GeneratedValue
     private Long id;

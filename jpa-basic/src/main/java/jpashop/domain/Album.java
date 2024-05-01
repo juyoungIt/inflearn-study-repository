@@ -1,13 +1,13 @@
-package hellojpa;
+package jpashop.domain;
 
-import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
-@Entity(name = "BaseAlbum")
-@DiscriminatorValue("A") // DType 값을 커스텀하고 싶은 경우 사용
+@Entity
 public class Album extends Item {
 
     private String artist;
+
+    private String etc;
 
     public String getArtist() {
         return artist;
@@ -15,5 +15,13 @@ public class Album extends Item {
 
     public void setArtist(String artist) {
         this.artist = artist;
+    }
+
+    public String getEtc() {
+        return etc;
+    }
+
+    public void setEtc(String etc) {
+        this.etc = etc;
     }
 }
