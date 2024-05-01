@@ -2,6 +2,8 @@ package hellojpa;
 
 import jakarta.persistence.*;
 
+import java.util.List;
+
 public class JpaMain {
     public static void main(String[] args) {
         /* 애풀리케이션 로딩 시점에 딱 한 개만 만들어져야 함 */
@@ -29,10 +31,11 @@ public class JpaMain {
             em.clear();
 
             Member findMember = em.find(Member.class, member.getId());
-            System.out.println("findMember.id = " + findMember.getId());
-            System.out.println("findMember.name = " + findMember.getName());
-            System.out.println("findMember.team.id = " + findMember.getTeam().getId());
-            System.out.println("findMember.team.name = " + findMember.getTeam().getName());
+            List<Member> members = findMember.getTeam().getMembers();
+
+            for (Member m : members) {
+                System.out.println("m = " + m.getName());
+            }
 
             tx.commit(); // Transaction 내 변경사항을 커밋함
         } catch (Exception e) {
